@@ -1,0 +1,13 @@
+{
+  "name": "match-insight",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "mobile": "npm run start --workspace @match-insight/mobile",
+    "admin": "npm run dev --workspace @match-insight/admin",
+    "api": "npm run dev --workspace @match-insight/api",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": { "node": ">=22" }
+}
