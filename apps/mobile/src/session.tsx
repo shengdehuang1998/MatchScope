@@ -1,5 +1,6 @@
+import Constants from 'expo-constants';
 import type { AuthTokens, UserDto } from '@match-insight/contracts';
-import * as SecureStore from 'expo-secure-store';
+import { tokenStorage as SecureStore } from './token-storage';
 import {
   createContext,
   useCallback,
@@ -28,7 +29,12 @@ interface SessionContextValue {
 
 const ACCESS_TOKEN_KEY = 'matchscope.accessToken';
 const REFRESH_TOKEN_KEY = 'matchscope.refreshToken';
-const apiUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, '');
+const configuredApiUrl = Constants.expoConfig?.extra?.apiUrl;
+const apiUrl = (
+  typeof configuredApiUrl === 'string' ? configuredApiUrl : process.env.EXPO_PUBLIC_API_URL
+)
+  ?.trim()
+  .replace(/\/$/, '');
 const SessionContext = createContext<SessionContextValue | null>(null);
 
 async function parseResponse<T>(response: Response): Promise<T> {
@@ -75,7 +81,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const request = useCallback(
     async <T,>(path: string, options: RequestOptions = {}): Promise<T> => {
-      if (!apiUrl) throw new Error('未配置 EXPO_PUBLIC_API_URL');
+      if (!apiUrl) throw new Error('暂时无法连接服务，请配置 API 地址并重启手机开发服务');
       const execute = (accessToken?: string) =>
         fetch(`${apiUrl}${path}`, {
           ...options,
@@ -103,10 +109,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void (async () => {
-      const [accessToken, refreshToken] = await Promise.all([
-        SecureStore.getItemAsync(ACCESS_TOKEN_KEY),
-        SecureStore.getItemAsync(REFRESH_TOKEN_KEY),
-      ]);
+      let accessToken: string | null;
+      let refreshToken: string | null;
+      try {
+        [accessToken, refreshToken] = await Promise.all([
+          SecureStore.getItemAsync(ACCESS_TOKEN_KEY),
+          SecureStore.getItemAsync(REFRESH_TOKEN_KEY),
+        ]);
+      } catch {
+        setStatus('anonymous');
+        return;
+      }
       if (!accessToken || !refreshToken) {
         setStatus('anonymous');
         return;
@@ -124,7 +137,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(
     async (email: string, password: string) => {
-      if (!apiUrl) throw new Error('未配置 EXPO_PUBLIC_API_URL');
+      if (!apiUrl) throw new Error('暂时无法连接服务，请配置 API 地址并重启手机开发服务');
       const result = await parseResponse<LoginResult>(
         await fetch(`${apiUrl}/auth/login`, {
           method: 'POST',

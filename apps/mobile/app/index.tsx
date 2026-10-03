@@ -1,5 +1,6 @@
+import { ActivityIndicator } from 'react-native-paper';
 import { Redirect } from 'expo-router';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 import { useSession } from '../src/session';
 import { colors } from '../src/ui';
 

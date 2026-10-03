@@ -37,6 +37,11 @@ export class PostgresStore implements AppStore {
     return true;
   }
 
+  async createUser(input: { email: string; passwordHash: string }): Promise<UserRecord | null> {
+    const [row] = await this.db.insert(users).values(input).onConflictDoNothing().returning();
+    return row ?? null;
+  }
+
   async findUserByEmail(email: string): Promise<UserRecord | null> {
     const [row] = await this.db
       .select()

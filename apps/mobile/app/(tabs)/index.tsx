@@ -1,9 +1,9 @@
 import type { MatchDto } from '@match-insight/contracts';
 import { useQuery } from '@tanstack/react-query';
-import { Link, useRouter } from 'expo-router';
+import { Link } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSession } from '../../src/session';
-import { ScreenState, colors, sharedStyles } from '../../src/ui';
+import { ScreenState, sharedStyles } from '../../src/ui';
 
 const statusText = {
   draft: '草稿',
@@ -14,7 +14,6 @@ const statusText = {
 
 export default function HomeScreen() {
   const { request } = useSession();
-  const router = useRouter();
   const query = useQuery({
     queryKey: ['matches'],
     queryFn: () => request<{ data: MatchDto[] }>('/matches?limit=50'),
@@ -26,19 +25,6 @@ export default function HomeScreen() {
   return (
     <ScrollView style={sharedStyles.screen} contentContainerStyle={sharedStyles.content}>
       <Text style={sharedStyles.title}>比赛</Text>
-      <Pressable
-        onPress={() => router.push('/matches/new')}
-        style={{
-          minHeight: 48,
-          borderRadius: 12,
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: colors.primary,
-          marginBottom: 12,
-        }}
-      >
-        <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>＋ 新增比赛</Text>
-      </Pressable>
       <ScreenState loading={query.isLoading} error={query.error} empty={!items.length}>
         {next ? (
           <Link href={{ pathname: '/matches/[id]', params: { id: next.id } }} asChild>

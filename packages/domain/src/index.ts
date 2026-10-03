@@ -10,6 +10,7 @@ export const DomainErrorCodes = {
   kickoffInPast: 'KICKOFF_IN_PAST',
   promptVersionNotFound: 'PROMPT_VERSION_NOT_FOUND',
   conflict: 'CONFLICT',
+  emailAlreadyExists: 'EMAIL_ALREADY_EXISTS',
 } as const;
 
 export type DomainErrorCode = (typeof DomainErrorCodes)[keyof typeof DomainErrorCodes];
@@ -162,6 +163,7 @@ export interface UpdateMatchInput {
 
 export interface AppStore {
   ready(): Promise<boolean>;
+  createUser(input: { email: string; passwordHash: string }): Promise<UserRecord | null>;
   findUserByEmail(email: string): Promise<UserRecord | null>;
   findUserById(id: string): Promise<UserRecord | null>;
   createSession(input: {

@@ -1,5 +1,5 @@
 import type { AppStore } from '@match-insight/domain';
-import { hash } from 'argon2';
+import { hash, verify } from 'argon2';
 import { describe, expect, it } from 'vitest';
 import { buildApp } from './app.js';
 import type { ApiConfig } from './config.js';
@@ -11,7 +11,7 @@ const config: ApiConfig = {
   jwtAccessSecret: 'test-secret-that-is-at-least-32-characters',
   accessTokenTtlMinutes: 15,
   refreshTokenTtlDays: 30,
-  corsOrigins: ['http://localhost:5173'],
+  corsOrigins: ['http://localhost:5174'],
 };
 
 function makeStore(overrides: Partial<AppStore> = {}): AppStore {
@@ -20,6 +20,7 @@ function makeStore(overrides: Partial<AppStore> = {}): AppStore {
   };
   return {
     ready: async () => true,
+    createUser: unused,
     findUserByEmail: async () => null,
     findUserById: async () => null,
     createSession: unused,
@@ -197,6 +198,46 @@ describe('API', () => {
     });
     expect(response.statusCode).toBe(200);
     expect(response.json().scheduleVersion).toBe(2);
+    await app.close();
+  });
+});
+
+describe('注册', () => {
+  it('规范邮箱并保存密码哈希，不返回密码', async () => {
+    let storedHash = '';
+    const app = await buildApp(
+      makeStore({
+        createUser: async (input) => {
+          storedHash = input.passwordHash;
+          expect(input.email).toBe('new@example.com');
+          return {
+            id: '9fbe7942-9a3a-4e1e-9d14-dd0138beaa11',
+            ...input,
+            displayName: null,
+            isActive: true,
+          };
+        },
+      }),
+      config,
+    );
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/register',
+      payload: { email: 'NEW@example.com', password: 'password123' },
+    });
+    expect(response.statusCode).toBe(201);
+    expect(await verify(storedHash, 'password123')).toBe(true);
+    expect(response.json().user.passwordHash).toBeUndefined();
+    await app.close();
+  });
+  it('重复邮箱返回冲突', async () => {
+    const app = await buildApp(makeStore({ createUser: async () => null }), config);
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/register',
+      payload: { email: 'new@example.com', password: 'password123' },
+    });
+    expect(response.statusCode).toBe(409);
     await app.close();
   });
 });

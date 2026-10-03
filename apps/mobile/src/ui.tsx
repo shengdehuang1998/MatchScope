@@ -1,13 +1,13 @@
+import { StyleSheet, View } from 'react-native';
+import type { ComponentProps, ReactNode } from 'react';
 import {
   ActivityIndicator,
-  Pressable,
-  StyleSheet,
+  Button as PaperButton,
+  HelperText,
+  MD3LightTheme,
   Text,
   TextInput,
-  View,
-  type TextInputProps,
-} from 'react-native';
-import type { ReactNode } from 'react';
+} from 'react-native-paper';
 
 export const colors = {
   background: '#F3F5F7',
@@ -19,20 +19,44 @@ export const colors = {
   border: '#DDE1E6',
 } as const;
 
+export const paperTheme = {
+  ...MD3LightTheme,
+  roundness: 3,
+  colors: {
+    ...MD3LightTheme.colors,
+    primary: colors.primary,
+    onPrimary: '#FFFFFF',
+    primaryContainer: '#E9F1FF',
+    onPrimaryContainer: colors.primary,
+    background: colors.background,
+    surface: colors.card,
+    onSurface: colors.text,
+    onSurfaceVariant: colors.muted,
+    outline: colors.border,
+    error: colors.danger,
+  },
+};
+
 export function Field({
   label,
   error,
+  style,
   ...props
-}: TextInputProps & { label: string; error?: string }) {
+}: Omit<ComponentProps<typeof TextInput>, 'label' | 'error'> & { label: string; error?: string }) {
   return (
     <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
       <TextInput
         {...props}
-        style={[styles.input, props.multiline && styles.multiline]}
-        placeholderTextColor="#9AA0A9"
+        label={label}
+        accessibilityLabel={props.accessibilityLabel ?? label}
+        mode="outlined"
+        error={Boolean(error)}
+        style={[styles.input, style]}
+        contentStyle={props.multiline ? styles.multiline : undefined}
       />
-      <Text style={styles.error}>{error || ' '}</Text>
+      <HelperText type="error" visible={Boolean(error)}>
+        {error || ' '}
+      </HelperText>
     </View>
   );
 }
@@ -51,18 +75,18 @@ export function Button({
   secondary?: boolean;
 }) {
   return (
-    <Pressable
+    <PaperButton
+      mode={secondary ? 'contained-tonal' : 'contained'}
       onPress={onPress}
       disabled={disabled}
-      style={[
-        styles.button,
-        secondary && styles.secondaryButton,
-        danger && styles.dangerButton,
-        disabled && styles.disabled,
-      ]}
+      buttonColor={danger ? colors.danger : undefined}
+      textColor={danger ? '#FFFFFF' : undefined}
+      style={styles.button}
+      contentStyle={styles.buttonContent}
+      labelStyle={styles.buttonLabel}
     >
-      <Text style={[styles.buttonText, secondary && styles.secondaryText]}>{children}</Text>
-    </Pressable>
+      {children}
+    </PaperButton>
   );
 }
 
@@ -113,32 +137,11 @@ export const sharedStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   field: { marginBottom: 2 },
-  label: { color: colors.text, fontSize: 13, fontWeight: '600', marginBottom: 7 },
-  input: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 13,
-    minHeight: 48,
-    color: colors.text,
-  },
-  multiline: { minHeight: 130, paddingTop: 12, textAlignVertical: 'top' },
-  error: { color: colors.danger, fontSize: 11, minHeight: 18, marginTop: 3 },
-  button: {
-    minHeight: 48,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.primary,
-    paddingHorizontal: 16,
-    marginVertical: 5,
-  },
-  buttonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
-  secondaryButton: { backgroundColor: '#E9F1FF' },
-  secondaryText: { color: colors.primary },
-  dangerButton: { backgroundColor: colors.danger },
-  disabled: { opacity: 0.5 },
+  input: { backgroundColor: colors.card },
+  multiline: { minHeight: 130, textAlignVertical: 'top' },
+  button: { borderRadius: 12, marginVertical: 5 },
+  buttonContent: { minHeight: 48 },
+  buttonLabel: { fontWeight: '700', fontSize: 15 },
   center: { flex: 1, minHeight: 220, alignItems: 'center', justifyContent: 'center', gap: 10 },
   muted: { color: colors.muted },
   errorMessage: { color: colors.danger, textAlign: 'center' },

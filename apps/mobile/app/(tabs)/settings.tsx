@@ -1,7 +1,8 @@
+import { Switch } from 'react-native-paper';
 import type { UserSettingsDto } from '@match-insight/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Controller, useForm } from 'react-hook-form';
-import { ScrollView, Switch, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useEffect } from 'react';
 import { useSession } from '../../src/session';
 import { Button, Field, ScreenState, colors, sharedStyles } from '../../src/ui';

@@ -34,7 +34,7 @@ import {
   validateTeams,
 } from '@match-insight/domain';
 import { Type } from '@sinclair/typebox';
-import { verify } from 'argon2';
+import { hash, verify } from 'argon2';
 import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify';
 import type { ApiConfig } from './config.js';
 
@@ -155,6 +155,25 @@ export async function buildApp(store: AppStore, config: ApiConfig) {
       return reply.status(503).send({ status: 'not_ready' });
     }
   });
+
+  app.post(
+    '/api/v1/auth/register',
+    {
+      schema: { body: LoginBodySchema },
+      config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
+    },
+    async (request, reply) => {
+      const email = normalizeEmail(request.body.email);
+      if (await store.findUserByEmail(email))
+        throw new DomainError('EMAIL_ALREADY_EXISTS', '该邮箱已注册，请直接登录', 409);
+      const user = await store.createUser({
+        email,
+        passwordHash: await hash(request.body.password),
+      });
+      if (!user) throw new DomainError('EMAIL_ALREADY_EXISTS', '该邮箱已注册，请直接登录', 409);
+      return reply.status(201).send({ user: publicUser(user) });
+    },
+  );
 
   app.post(
     '/api/v1/auth/login',

@@ -7,7 +7,16 @@ import { Pool } from 'pg';
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) throw new Error('DATABASE_URL is required');
 
-const migrationDirectory = fileURLToPath(new URL('../../../database/migrations/', import.meta.url));
+const migrationDirectory = process.env.MIGRATIONS_DIR
+  ? resolve(process.env.MIGRATIONS_DIR)
+  : fileURLToPath(new URL('../../../database/migrations/', import.meta.url));
+const files = await readdir(migrationDirectory).catch(() => {
+  throw new Error(
+    'Migration directory is missing. Configure MIGRATIONS_DIR with the absolute path to your SQL migrations.',
+  );
+});
+const migrationFiles = files.filter((name) => name.endsWith('.sql')).sort();
+if (!migrationFiles.length) throw new Error('No SQL migrations found in MIGRATIONS_DIR');
 const pool = new Pool({ connectionString: databaseUrl });
 
 try {
@@ -16,8 +25,7 @@ try {
     checksum text NOT NULL,
     applied_at timestamp with time zone NOT NULL DEFAULT now()
   )`);
-  const files = (await readdir(migrationDirectory)).filter((name) => name.endsWith('.sql')).sort();
-  for (const name of files) {
+  for (const name of migrationFiles) {
     const sql = await readFile(resolve(migrationDirectory, name), 'utf8');
     const checksum = createHash('sha256').update(sql).digest('hex');
     const applied = await pool.query<{ checksum: string }>(
