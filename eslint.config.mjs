@@ -11,6 +11,7 @@ export default tseslint.config(
       '**/.expo/**',
       '**/coverage/**',
       '**/.docx-qa*/**',
+      'tmp/**',
     ],
   },
   js.configs.recommended,
