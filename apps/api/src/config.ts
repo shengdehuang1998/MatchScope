@@ -28,12 +28,12 @@ export function loadConfig(): ApiConfig {
     throw new Error('JWT_ACCESS_SECRET must contain at least 32 characters');
   return {
     host: process.env.HOST?.trim() || '0.0.0.0',
-    port: positiveInteger('PORT', 3000),
+    port: positiveInteger('PORT', 8187),
     databaseUrl: required('DATABASE_URL'),
     jwtAccessSecret,
     accessTokenTtlMinutes: positiveInteger('ACCESS_TOKEN_TTL_MINUTES', 15),
     refreshTokenTtlDays: positiveInteger('REFRESH_TOKEN_TTL_DAYS', 30),
-    corsOrigins: (process.env.CORS_ORIGINS || 'http://localhost:5173')
+    corsOrigins: (process.env.CORS_ORIGINS || 'http://localhost:5174,http://localhost:8183')
       .split(',')
       .map((value) => value.trim())
       .filter(Boolean),
