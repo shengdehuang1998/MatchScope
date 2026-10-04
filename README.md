@@ -18,7 +18,7 @@ MatchScope 是一套足球比赛赛前分析与推送系统。管理员负责录
 git clone https://github.com/shengdehuang1998/MatchScope.git
 cd MatchScope
 npm ci
-Copy-Item .env.example .env
+if (!(Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
 如果已经克隆项目，在项目根目录执行 `git pull` 和 `npm ci`；已有 `.env` 时保留该文件，不要重复复制覆盖。
@@ -30,7 +30,7 @@ Copy-Item .env.example .env
 - `INIT_USER_EMAIL`、`INIT_USER_PASSWORD`、`INIT_USER_DISPLAY_NAME`：用于空数据库的初始账号，密码至少 12 位。
 - `EXPO_PUBLIC_API_URL`：电脑浏览器调试使用 `http://localhost:8187/api/v1`；iPhone 真机调试改为家里电脑的局域网 IP，例如 `http://192.168.1.100:8187/api/v1`。可用 `ipconfig` 查看 IPv4 地址。手机和电脑需要处于同一局域网，防火墙允许 Node.js 的局域网访问；修改后重启手机开发服务。
 
-`.env` 包含数据库密码和密钥，已被 Git 忽略。换电脑需自行配置，Git 只同步 `.env.example`。数据库数据也不会随代码同步；连接同一个云数据库可访问已有数据，使用新的本地数据库需要初始化。
+按项目所有者要求，当前 `.env` 随 Git 同步，其中的数据库密码和密钥对仓库读者可见，并保留在提交历史中。换电脑拉取后检查数据库访问权限及手机端 API 地址。数据库数据不会随代码同步；连接同一个云数据库可访问已有数据，使用新的本地数据库需要初始化。
 
 ### 数据库初始化
 
